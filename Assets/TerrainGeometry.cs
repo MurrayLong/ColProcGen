@@ -30,7 +30,10 @@ public class TerrainGeometry : MonoBehaviour
     float HeightAt(Vector2 position) 
     {
         var scaled = position/scale * frequency;
-        return  elevationScale*(float)(Math.Cos(scaled.x) * Math.Sin(scaled.y));
+        return elevationScale *
+            (0.5f +
+                (float)(Math.Cos(scaled.x) * Math.Sin(scaled.y))/2.0f
+            );
     }
 
     float HeightAt(Vector3 position) => HeightAt(new Vector2(position.x, position.z));
@@ -43,8 +46,11 @@ public class TerrainGeometry : MonoBehaviour
         terrain.transform.localPosition = Vector3.zero;
         terrain.transform.localRotation = Quaternion.identity;
 
-        terrain.gameObject.AddComponent<MeshFilter>().sharedMesh = CreateGroundMesh();
+
+        var mesh = CreateGroundMesh();
+        terrain.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
         terrain.gameObject.AddComponent<MeshRenderer>().sharedMaterial = groundMaterial;
+        terrain.gameObject.AddComponent<MeshCollider>().sharedMesh = mesh;
     }
     void CreateTree(Vector2 position, Transform parent)
     {
@@ -76,6 +82,7 @@ public class TerrainGeometry : MonoBehaviour
             .Select(v => v + Vector3.up * HeightAt(v))
             .ToArray();
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
         return mesh;
     }
 
